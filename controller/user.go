@@ -33,6 +33,10 @@ func RegisterHandler(c *gin.Context) {
 	if info := logic.Register(client); info != code.StatusSuccess {
 		if info == code.StatusUserExist {
 			errHandler.ResponseError(c, code.StatusUserExist)
+			return
+		} else if info == code.StatusInvalidInvitation {
+			errHandler.ResponseError(c, code.StatusInvalidInvitation)
+			return
 		}
 		errHandler.ResponseError(c, code.StatusBusy)
 		return
@@ -63,6 +67,7 @@ func LoginHandler(c *gin.Context) {
 	if info != code.StatusSuccess {
 		if info == code.StatusUserNotExist || info == code.StatusInvalidPwd {
 			errHandler.ResponseError(c, info)
+			return
 		}
 		errHandler.ResponseError(c, code.StatusBusy)
 		return

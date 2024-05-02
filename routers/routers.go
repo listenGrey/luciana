@@ -14,8 +14,8 @@ func SetupRouter() *gin.Engine {
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{"http://localhost:8082"} // 允许前端的地址
 	config.AllowMethods = []string{"POST"}                  // 允许POST方法
-	config.AllowMethods = []string{"GET"}
-	config.AllowMethods = []string{"DELETE"}
+	config.AllowMethods = []string{"GET"}                   // 允许GET方法
+	config.AllowMethods = []string{"DELETE"}                // 允许DELETE方法
 
 	r.Use(cors.New(config))
 	v1 := r.Group("/api/v1")

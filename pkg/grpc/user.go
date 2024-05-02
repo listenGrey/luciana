@@ -1,33 +1,33 @@
 package grpc
 
 import (
-	"github.com/listenGrey/TmagegRpcPKG/userInfo"
+	"github.com/listenGrey/lucianagRpcPKG/user"
 	"google.golang.org/grpc"
 	"luciana/errHandler/code"
 )
 
 // 定义gRpc客户端服务器的类型码
 
-type GrpcService string
+type Service string
 
 const (
-	CheckExistence GrpcService = "CheckExistence"
-	Register       GrpcService = "Register"
-	LoginCheck     GrpcService = "LoginCheck"
+	CheckExistence Service = "CheckExistence"
+	Register       Service = "Register"
+	LoginCheck     Service = "LoginCheck"
 )
 
-func UserClientServer(funcCode GrpcService) (client interface{}) {
+func UserClientServer(service Service) (client interface{}) {
 	conn, err := grpc.Dial("localhost:8964", grpc.WithInsecure()) //server IP
 	if err != nil {
 		return code.StatusConnGrpcServerERR
 	}
-	switch funcCode {
+	switch service {
 	case CheckExistence:
-		client = userInfo.NewCheckExistenceClient(conn)
+		client = user.NewCheckExistenceClient(conn)
 	case Register:
-		client = userInfo.NewRegisterInfoClient(conn)
+		client = user.NewRegisterInfoClient(conn)
 	case LoginCheck:
-		client = userInfo.NewLoginCheckClient(conn)
+		client = user.NewLoginCheckClient(conn)
 	default:
 		client = nil
 	}

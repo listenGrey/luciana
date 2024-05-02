@@ -20,9 +20,8 @@ const (
 	StatusRegisterERR        Code = 1101
 	StatusConnGrpcServerERR  Code = 1102
 	StatusRecvGrpcSerInfoERR Code = 1103
-	StatusConnDBERR          Code = 1104
-	StatusKafkaSendERR       Code = 1105
-	StatusKafkaReceiveERR    Code = 1106
+	StatusKafkaSendERR       Code = 1104
+	StatusKafkaReceiveERR    Code = 1105
 )
 
 var msgFlags = map[Code]string{
@@ -41,7 +40,6 @@ var msgFlags = map[Code]string{
 	StatusRegisterERR:        "用户注册失败",
 	StatusConnGrpcServerERR:  "无法连接到gRpc服务器",
 	StatusRecvGrpcSerInfoERR: "从gRpc服务器获取信息失败",
-	StatusConnDBERR:          "无法连接到数据库",
 	StatusKafkaSendERR:       "向kafka中发送数据失败",
 	StatusKafkaReceiveERR:    "从kafka中获取数据失败",
 }

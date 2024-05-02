@@ -1,7 +1,7 @@
 package util
 
 import (
-	"github.com/listenGrey/TmagegRpcPKG/userInfo"
+	"github.com/listenGrey/lucianagRpcPKG/user"
 	"luciana/errHandler/code"
 	"luciana/model"
 	"luciana/pkg/grpc"
@@ -17,24 +17,20 @@ func CheckExistence(email string) code.Code {
 		return code.StatusConnGrpcServerERR
 	}
 
-	// 发送邮箱
-	sendEmail := &userInfo.RegisterEmail{Email: email}
-	res, err := client.(userInfo.CheckExistenceClient).RegisterCheck(context.Background(), sendEmail)
+	// 获取用户的状态信息
+	sendEmail := &user.RegisterEmail{Email: email}
+	res, err := client.(user.CheckExistenceClient).RegisterCheck(context.Background(), sendEmail)
 	if err != nil {
 		return code.StatusRecvGrpcSerInfoERR
 	}
 
-	// 获取用户的状态信息
-	exist := res.Exist
-	info := res.Info
-
-	if info == code.StatusConnDBERR.Code() {
-		return code.StatusConnDBERR
-	} else if info == code.StatusBusy.Code() {
-		return code.StatusBusy
+	// 获取用户信息节点的状态
+	if res.ServerErr {
+		return code.StatusRecvGrpcSerInfoERR
 	}
 
-	if exist {
+	// 用户是否已经存在
+	if res.Exist {
 		return code.StatusUserExist
 	}
 
@@ -42,32 +38,30 @@ func CheckExistence(email string) code.Code {
 }
 
 // Register 用户注册
-func Register(user *model.User) code.Code {
+func Register(u *model.User) code.Code {
+	// 创建gRpc客户端
 	client := grpc.UserClientServer(grpc.Register)
 	if client == code.StatusConnGrpcServerERR {
 		return code.StatusConnGrpcServerERR
 	}
-	sendUser := &userInfo.RegisterForm{
-		UserID:   user.UserID,
-		Email:    user.Email,
-		UserName: user.UserName,
-		Password: user.Password,
+	sendUser := &user.RegisterForm{
+		UserID:   u.UserID,
+		Email:    u.Email,
+		UserName: u.UserName,
+		Password: u.Password,
 	}
-	res, err := client.(userInfo.RegisterInfoClient).Register(context.Background(), sendUser)
+	res, err := client.(user.RegisterInfoClient).Register(context.Background(), sendUser)
 	if err != nil {
 		return code.StatusRecvGrpcSerInfoERR
 	}
 
-	sta := res.Success
-	info := res.Info
-
-	if info == code.StatusConnDBERR.Code() {
-		return code.StatusConnDBERR
-	} else if info == code.StatusBusy.Code() {
-		return code.StatusBusy
+	// 获取用户信息节点的状态
+	if res.ServerErr {
+		return code.StatusRecvGrpcSerInfoERR
 	}
 
-	if !sta {
+	// 用户注册情况
+	if !res.Success {
 		return code.StatusRegisterERR
 	}
 
@@ -75,29 +69,34 @@ func Register(user *model.User) code.Code {
 }
 
 // LoginCheck 用户登录
-func LoginCheck(user *model.User) (info code.Code, userID int64) {
+func LoginCheck(u *model.User) (info code.Code, userID int64) {
+	// 创建gRpc客户端
 	client := grpc.UserClientServer(grpc.LoginCheck)
 	if client == code.StatusConnGrpcServerERR {
 		return code.StatusConnGrpcServerERR, 0
 	}
-	sendUser := &userInfo.LoginForm{
-		Email:    user.Email,
-		Password: user.Password,
+	sendUser := &user.LoginForm{
+		Email:    u.Email,
+		Password: u.Password,
 	}
-	res, err := client.(userInfo.LoginCheckClient).LoginCheck(context.Background(), sendUser)
+	res, err := client.(user.LoginCheckClient).LoginCheck(context.Background(), sendUser)
 	if err != nil {
 		return code.StatusRecvGrpcSerInfoERR, 0
 	}
-	sta := res.Info
-	userID = res.UserID
-	if sta == code.StatusConnDBERR.Code() {
-		return code.StatusConnDBERR, 0
-	} else if sta == code.StatusUserNotExist.Code() {
+
+	// 获取用户信息节点的状态
+	if res.ServerErr {
+		return code.StatusRecvGrpcSerInfoERR, 0
+	}
+
+	// 用户是否存在
+	if !res.Exist {
 		return code.StatusUserNotExist, 0
-	} else if sta == code.StatusInvalidPwd.Code() {
+	}
+
+	// 密码是否正确
+	if !res.Success {
 		return code.StatusInvalidPwd, 0
-	} else if sta == code.StatusBusy.Code() {
-		return code.StatusBusy, 0
 	}
 
 	return code.StatusSuccess, userID
