@@ -13,67 +13,67 @@ import (
 func CheckExistence(email string) code.Code {
 	// 创建gRpc客户端
 	client := grpc.UserClientServer(grpc.CheckExistence)
-	if client == code.StatusConnGrpcServerERR {
-		return code.StatusConnGrpcServerERR
+	if client == code.ConnGrpcServerERR {
+		return code.ConnGrpcServerERR
 	}
 
 	// 获取用户的状态信息
 	sendEmail := &user.RegisterEmail{Email: email}
 	res, err := client.(user.CheckExistenceClient).RegisterCheck(context.Background(), sendEmail)
 	if err != nil {
-		return code.StatusRecvGrpcSerInfoERR
+		return code.RecvGrpcSerInfoERR
 	}
 
 	// 获取用户信息节点的状态
-	if res.ServerErr {
-		return code.StatusRecvGrpcSerInfoERR
+	if res.ServerError {
+		return code.RecvGrpcSerInfoERR
 	}
 
 	// 用户是否已经存在
 	if res.Exist {
-		return code.StatusUserExist
+		return code.UserExist
 	}
 
-	return code.StatusSuccess
+	return code.Success
 }
 
 // Register 用户注册
 func Register(u *model.User) code.Code {
 	// 创建gRpc客户端
 	client := grpc.UserClientServer(grpc.Register)
-	if client == code.StatusConnGrpcServerERR {
-		return code.StatusConnGrpcServerERR
+	if client == code.ConnGrpcServerERR {
+		return code.ConnGrpcServerERR
 	}
 	sendUser := &user.RegisterForm{
-		UserID:   u.UserID,
+		UserId:   u.UserID,
 		Email:    u.Email,
 		UserName: u.UserName,
 		Password: u.Password,
 	}
 	res, err := client.(user.RegisterInfoClient).Register(context.Background(), sendUser)
 	if err != nil {
-		return code.StatusRecvGrpcSerInfoERR
+		return code.RecvGrpcSerInfoERR
 	}
 
 	// 获取用户信息节点的状态
-	if res.ServerErr {
-		return code.StatusRecvGrpcSerInfoERR
+	if res.ServerError {
+		return code.RecvGrpcSerInfoERR
 	}
 
 	// 用户注册情况
 	if !res.Success {
-		return code.StatusRegisterERR
+		return code.RegisterERR
 	}
 
-	return code.StatusSuccess
+	return code.Success
 }
 
 // LoginCheck 用户登录
-func LoginCheck(u *model.User) (info code.Code, userID int64) {
+func LoginCheck(u *model.User) (code.Code, int64, string) {
 	// 创建gRpc客户端
 	client := grpc.UserClientServer(grpc.LoginCheck)
-	if client == code.StatusConnGrpcServerERR {
-		return code.StatusConnGrpcServerERR, 0
+	if client == code.ConnGrpcServerERR {
+		return code.ConnGrpcServerERR, 0, ""
 	}
 	sendUser := &user.LoginForm{
 		Email:    u.Email,
@@ -81,23 +81,23 @@ func LoginCheck(u *model.User) (info code.Code, userID int64) {
 	}
 	res, err := client.(user.LoginCheckClient).LoginCheck(context.Background(), sendUser)
 	if err != nil {
-		return code.StatusRecvGrpcSerInfoERR, 0
+		return code.RecvGrpcSerInfoERR, 0, ""
 	}
 
 	// 获取用户信息节点的状态
-	if res.ServerErr {
-		return code.StatusRecvGrpcSerInfoERR, 0
+	if res.ServerError {
+		return code.RecvGrpcSerInfoERR, 0, ""
 	}
 
 	// 用户是否存在
 	if !res.Exist {
-		return code.StatusUserNotExist, 0
+		return code.UserNotExist, 0, ""
 	}
 
 	// 密码是否正确
 	if !res.Success {
-		return code.StatusInvalidPwd, 0
+		return code.InvalidPwd, 0, ""
 	}
 
-	return code.StatusSuccess, userID
+	return code.Success, res.UserId, res.UserName
 }

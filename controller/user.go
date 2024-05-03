@@ -22,23 +22,23 @@ func RegisterHandler(c *gin.Context) {
 		errs, ok := err.(validator.ValidationErrors)
 		if ok {
 			// 翻译错误
-			errHandler.ResponseMsg(c, code.StatusInvalidParams, errs.Translate(trans))
+			errHandler.ResponseMsg(c, code.InvalidParams, errs.Translate(trans))
 			return
 		}
 		// 请求参数错误
-		errHandler.ResponseError(c, code.StatusInvalidParams)
+		errHandler.ResponseError(c, code.InvalidParams)
 		return
 	}
 	// 用户注册
-	if info := logic.Register(client); info != code.StatusSuccess {
-		if info == code.StatusUserExist {
-			errHandler.ResponseError(c, code.StatusUserExist)
+	if info := logic.Register(client); info != code.Success {
+		if info == code.UserExist {
+			errHandler.ResponseError(c, code.UserExist)
 			return
-		} else if info == code.StatusInvalidInvitation {
-			errHandler.ResponseError(c, code.StatusInvalidInvitation)
+		} else if info == code.InvalidInvitation {
+			errHandler.ResponseError(c, code.InvalidInvitation)
 			return
 		}
-		errHandler.ResponseError(c, code.StatusBusy)
+		errHandler.ResponseError(c, code.Busy)
 		return
 	}
 
@@ -54,22 +54,22 @@ func LoginHandler(c *gin.Context) {
 		errs, ok := err.(validator.ValidationErrors)
 		if ok {
 			// 翻译错误
-			errHandler.ResponseMsg(c, code.StatusInvalidParams, errs.Translate(trans))
+			errHandler.ResponseMsg(c, code.InvalidParams, errs.Translate(trans))
 			return
 		}
 		// 请求参数错误
-		errHandler.ResponseError(c, code.StatusInvalidParams)
+		errHandler.ResponseError(c, code.InvalidParams)
 		return
 	}
 
 	// 用户登录
 	curUser, info := logic.Login(user)
-	if info != code.StatusSuccess {
-		if info == code.StatusUserNotExist || info == code.StatusInvalidPwd {
+	if info != code.Success {
+		if info == code.UserNotExist || info == code.InvalidPwd {
 			errHandler.ResponseError(c, info)
 			return
 		}
-		errHandler.ResponseError(c, code.StatusBusy)
+		errHandler.ResponseError(c, code.Busy)
 		return
 	}
 
@@ -88,20 +88,20 @@ func RefreshTokenHandler(c *gin.Context) {
 
 	authHeader := c.Request.Header.Get("Authorization")
 	if authHeader == "" {
-		errHandler.ResponseMsg(c, code.StatusInvalidToken, "请求头缺少Token")
+		errHandler.ResponseMsg(c, code.InvalidToken, "请求头缺少Token")
 		c.Abort()
 		return
 	}
 	// 按空格分割
 	parts := strings.SplitN(authHeader, " ", 2)
 	if !(len(parts) == 2 && parts[0] == "Bearer") {
-		errHandler.ResponseMsg(c, code.StatusInvalidToken, "Token格式错误")
+		errHandler.ResponseMsg(c, code.InvalidToken, "Token格式错误")
 		c.Abort()
 		return
 	}
 	aToken, rToken, err := jwt.RefreshToken(parts[1], rt)
 	if err != nil {
-		errHandler.ResponseMsg(c, code.StatusInvalidToken, "刷新Token错误")
+		errHandler.ResponseMsg(c, code.InvalidToken, "刷新Token错误")
 		c.Abort()
 		return
 	}

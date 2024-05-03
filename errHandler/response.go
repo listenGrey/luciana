@@ -27,8 +27,8 @@ func ResponseMsg(c *gin.Context, code code.Code, msg interface{}) {
 
 func ResponseSuccess(c *gin.Context, content interface{}) {
 	re := &model.ResponseContent{
-		Code:    code.StatusSuccess.Code(),
-		Msg:     code.StatusSuccess.Msg(),
+		Code:    code.Success.Code(),
+		Msg:     code.Success.Msg(),
 		Content: content,
 	}
 	c.JSON(http.StatusOK, re)

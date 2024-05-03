@@ -19,7 +19,7 @@ const (
 func UserClientServer(service Service) (client interface{}) {
 	conn, err := grpc.Dial("localhost:8964", grpc.WithInsecure()) //server IP
 	if err != nil {
-		return code.StatusConnGrpcServerERR
+		return code.ConnGrpcServerERR
 	}
 	switch service {
 	case CheckExistence:

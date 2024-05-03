@@ -20,19 +20,18 @@ func encryptPwd(pwdByte []byte) (res string) {
 func Register(client *model.RegisterFrom) code.Code {
 	// 判断邀请码
 	if client.Invitation != "ae86se" {
-		return code.StatusInvalidInvitation
+		return code.InvalidInvitation
 	}
-
 	// 将注册邮箱通过gRpc发送到用户信息节点去判断用户是否存在
 	existence := util.CheckExistence(client.Email)
-	if existence != code.StatusSuccess {
+	if existence != code.Success {
 		return existence
 	}
 
 	// 生成用户ID，并对密码加密
 	node, err := snowflake.NewNode(1)
 	if err != nil {
-		return code.StatusInvalidGenID
+		return code.InvalidGenID
 	}
 	userId := node.Generate()
 	pwdByte := []byte(client.Password)
@@ -48,38 +47,39 @@ func Register(client *model.RegisterFrom) code.Code {
 
 	// 发送用户信息
 	res := util.Register(user)
-	if res != code.StatusSuccess {
+	if res != code.Success {
 		return res
 	}
 
-	return code.StatusSuccess
+	return code.Success
 }
 
 // Login 用户登录
-func Login(form *model.LoginForm) (user *model.User, info code.Code) {
+func Login(form *model.LoginForm) (*model.User, code.Code) {
 	// 对密码加密
 	pwdByte := []byte(form.Password)
 	userPwd := encryptPwd(pwdByte)
 
-	user = &model.User{
+	user := &model.User{
 		Email:    form.Email,
 		Password: userPwd,
 	}
 
 	// 将登录信息通过gRpc发送到用户信息节点去判断用户和密码是否正确
-	msg, userID := util.LoginCheck(user)
-	if msg != code.StatusSuccess {
-		return nil, msg
+	info, userID, userName := util.LoginCheck(user)
+	if info != code.Success {
+		return nil, info
 	}
 	user.UserID = userID
+	user.UserName = userName
 
 	// 生成JWT
 	aToken, rToken, err := jwt.GenToken(user.UserID, user.UserName)
 	if err != nil {
-		return nil, code.StatusBusy
+		return nil, code.Busy
 	}
 	user.AccessToken = aToken
 	user.RefreshToken = rToken
 
-	return user, code.StatusSuccess
+	return user, code.Success
 }
