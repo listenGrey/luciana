@@ -1,6 +1,7 @@
 package grpc
 
 import (
+	"github.com/listenGrey/lucianagRpcPKG/chat"
 	"github.com/listenGrey/lucianagRpcPKG/user"
 	"google.golang.org/grpc"
 	"luciana/errHandler/code"
@@ -14,6 +15,8 @@ const (
 	CheckExistence Service = "CheckExistence"
 	Register       Service = "Register"
 	LoginCheck     Service = "LoginCheck"
+	GetChat        Service = "GetChat"
+	GetChats       Service = "GetChats"
 )
 
 func UserClientServer(service Service) (client interface{}) {
@@ -28,6 +31,10 @@ func UserClientServer(service Service) (client interface{}) {
 		client = user.NewRegisterInfoClient(conn)
 	case LoginCheck:
 		client = user.NewLoginCheckClient(conn)
+	case GetChat:
+		client = chat.NewGetChatServiceClient(conn)
+	case GetChats:
+		client = chat.NewGetChatsServiceClient(conn)
 	default:
 		client = nil
 	}

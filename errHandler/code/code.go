@@ -19,8 +19,6 @@ const (
 	RegisterERR        Code = 1101
 	ConnGrpcServerERR  Code = 1102
 	RecvGrpcSerInfoERR Code = 1103
-	KafkaSendERR       Code = 1104
-	KafkaReceiveERR    Code = 1105
 )
 
 var msgFlags = map[Code]string{
@@ -38,8 +36,6 @@ var msgFlags = map[Code]string{
 	RegisterERR:        "用户注册失败",
 	ConnGrpcServerERR:  "无法连接到gRpc服务器",
 	RecvGrpcSerInfoERR: "从gRpc服务器获取信息失败",
-	KafkaSendERR:       "向kafka中发送数据失败",
-	KafkaReceiveERR:    "从kafka中获取数据失败",
 }
 
 func (c Code) Msg() string {
