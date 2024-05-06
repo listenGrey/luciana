@@ -17,21 +17,25 @@ func encryptPwd(pwdByte []byte) (res string) {
 }
 
 // Register 用户注册
-func Register(client *model.RegisterFrom) code.Code {
+func Register(client *model.RegisterFrom) (code.Code, error) {
 	// 判断邀请码
 	if client.Invitation != "ae86se" {
-		return code.InvalidInvitation
+		return code.InvalidInvitation, nil
 	}
 	// 将注册邮箱通过gRpc发送到用户信息节点去判断用户是否存在
-	existence := util.CheckExistence(client.Email)
+	existence, err := util.CheckExistence(client.Email)
+	if err != nil {
+		return code.Busy, err
+	}
+
 	if existence != code.Success {
-		return existence
+		return existence, nil
 	}
 
 	// 生成用户ID，并对密码加密
 	node, err := snowflake.NewNode(1)
 	if err != nil {
-		return code.InvalidGenID
+		return code.Busy, err
 	}
 	userId := node.Generate()
 	pwdByte := []byte(client.Password)
@@ -46,16 +50,16 @@ func Register(client *model.RegisterFrom) code.Code {
 	}
 
 	// 发送用户信息
-	res := util.Register(user)
-	if res != code.Success {
-		return res
+	err = util.Register(user)
+	if err != nil {
+		return code.Busy, err
 	}
 
-	return code.Success
+	return code.Success, nil
 }
 
 // Login 用户登录
-func Login(form *model.LoginForm) (*model.User, code.Code) {
+func Login(form *model.LoginForm) (*model.User, code.Code, error) {
 	// 对密码加密
 	pwdByte := []byte(form.Password)
 	userPwd := encryptPwd(pwdByte)
@@ -66,9 +70,12 @@ func Login(form *model.LoginForm) (*model.User, code.Code) {
 	}
 
 	// 将登录信息通过gRpc发送到用户信息节点去判断用户和密码是否正确
-	info, userID, userName := util.LoginCheck(user)
+	info, userID, userName, err := util.LoginCheck(user)
+	if err != nil {
+		return nil, code.Busy, err
+	}
 	if info != code.Success {
-		return nil, info
+		return nil, info, nil
 	}
 	user.UserID = userID
 	user.UserName = userName
@@ -76,10 +83,10 @@ func Login(form *model.LoginForm) (*model.User, code.Code) {
 	// 生成JWT
 	aToken, rToken, err := jwt.GenToken(user.UserID, user.UserName)
 	if err != nil {
-		return nil, code.Busy
+		return nil, code.Busy, err
 	}
 	user.AccessToken = aToken
 	user.RefreshToken = rToken
 
-	return user, code.Success
+	return user, code.Success, nil
 }

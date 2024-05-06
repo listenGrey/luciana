@@ -16,7 +16,7 @@ func GetChatList(id int64) (*[]model.Chat, error) {
 }
 
 // NewChat 创建新聊天
-func NewChat() (*model.Chat, error) {
+func NewChat(uid int64) (*model.Chat, error) {
 	// 生成聊天ID
 	node, err := snowflake.NewNode(999)
 	if err != nil {
@@ -26,12 +26,12 @@ func NewChat() (*model.Chat, error) {
 
 	// 创建新聊天
 	newChat := &model.Chat{
-		Id:   id.Int64(),
-		Name: "New Chat",
+		ChatID: id.Int64(),
+		Name:   "New Chat",
 	}
 
 	// 将新聊天信息发送
-	err = util.NewChat(newChat)
+	err = util.NewChat(uid, newChat)
 	if err != nil {
 		return nil, err
 	}

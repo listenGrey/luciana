@@ -75,10 +75,15 @@ func (l *LoginForm) UnmarshalJSON(data []byte) (err error) {
 }
 
 type User struct {
-	UserID       int64  `json:"user_id" bson:"user_id"`
-	UserName     string `json:"user_name" bson:"user_name"`
-	Password     string `json:"password" bson:"password"`
-	Email        string `json:"email" bson:"email"`
+	UserID       int64  `json:"user_id"`
+	UserName     string `json:"user_name"`
+	Password     string `json:"password"`
+	Email        string `json:"email"`
 	AccessToken  string
 	RefreshToken string
+}
+
+type UserChats struct {
+	UserID int64  `json:"user_id"`
+	Chats  []Chat `json:"chats"`
 }

@@ -30,15 +30,13 @@ func RegisterHandler(c *gin.Context) {
 		return
 	}
 	// 用户注册
-	if info := logic.Register(client); info != code.Success {
-		if info == code.UserExist {
-			errHandler.ResponseError(c, code.UserExist)
-			return
-		} else if info == code.InvalidInvitation {
-			errHandler.ResponseError(c, code.InvalidInvitation)
-			return
-		}
+	info, err := logic.Register(client)
+	if err != nil {
 		errHandler.ResponseError(c, code.Busy)
+		return
+	}
+	if info == code.UserExist || info == code.InvalidInvitation {
+		errHandler.ResponseError(c, info)
 		return
 	}
 
@@ -63,13 +61,13 @@ func LoginHandler(c *gin.Context) {
 	}
 
 	// 用户登录
-	curUser, info := logic.Login(user)
-	if info != code.Success {
-		if info == code.UserNotExist || info == code.InvalidPwd {
-			errHandler.ResponseError(c, info)
-			return
-		}
+	curUser, info, err := logic.Login(user)
+	if err != nil {
 		errHandler.ResponseError(c, code.Busy)
+		return
+	}
+	if info == code.UserNotExist || info == code.InvalidPwd {
+		errHandler.ResponseError(c, info)
 		return
 	}
 

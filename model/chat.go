@@ -13,9 +13,9 @@ type QA struct {
 }
 
 type Chat struct {
-	Id   int64  `json:"id" binding:"required"`
-	Name string `json:"name"`
-	QAs  []QA   `json:"qa_s"`
+	ChatID int64  `json:"cid" binding:"required"`
+	Name   string `json:"name"`
+	QAs    []QA   `json:"qa_s"`
 }
 
 type ResponseContent struct {
@@ -30,7 +30,7 @@ func ChatsUnmarshal(c *chat.Chats) *[]Chat {
 	for _, v := range c.Chats {
 		var ch Chat
 
-		ch.Id = v.Id
+		ch.ChatID = v.Id
 		ch.Name = v.Name
 
 		chats = append(chats, ch)
@@ -42,7 +42,7 @@ func ChatsUnmarshal(c *chat.Chats) *[]Chat {
 func ChatUnmarshal(c *chat.Chat) *Chat {
 	var ch Chat
 
-	ch.Id = c.Id
+	ch.ChatID = c.Id
 	ch.Name = c.Name
 
 	var qas []QA

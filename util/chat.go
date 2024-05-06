@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/listenGrey/lucianagRpcPKG/chat"
 	"github.com/segmentio/kafka-go"
-	"luciana/errHandler/code"
 	"luciana/model"
 	"luciana/pkg/grpc"
 	"time"
@@ -15,18 +14,18 @@ import (
 )
 
 // GetChatList 使用gRpc获取聊天列表
-func GetChatList(id int64) (*[]model.Chat, error) {
+func GetChatList(uid int64) (*[]model.Chat, error) {
 	// 创建gRpc客户端
 	client := grpc.UserClientServer(grpc.GetChats)
-	if client == code.ConnGrpcServerERR {
-		return nil, errors.New(code.ConnGrpcServerERR.Msg())
+	if client == nil {
+		return nil, errors.New("gRpc 客户端启动失败")
 	}
 
 	// 获取聊天列表
-	sendId := &chat.ID{Id: id}
+	sendId := &chat.ID{Id: uid}
 	chats, err := client.(chat.GetChatsServiceClient).GetChats(context.Background(), sendId)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("使用 gRpc 获取信息失败")
 	}
 
 	res := model.ChatsUnmarshal(chats)
@@ -35,7 +34,7 @@ func GetChatList(id int64) (*[]model.Chat, error) {
 }
 
 // NewChat 使用kafka发送新聊天信息
-func NewChat(new *model.Chat) error {
+func NewChat(uid int64, new *model.Chat) error {
 	ctx := context.Background()
 	// 创建 Kafka 生产者
 	writer := &kafka.Writer{
@@ -50,11 +49,14 @@ func NewChat(new *model.Chat) error {
 	defer writer.Close()
 
 	// 构造消息
-	key := []byte(fmt.Sprintf("%d", new.Id)) // key = id
-	value := []byte(new.Name)                // value = name
+	key := []byte(fmt.Sprintf("%d", uid)) // key = uid
+	value, err := json.Marshal(new)       // value = data
+	if err != nil {
+		return err
+	}
 
 	// 发送消息
-	err := writer.WriteMessages(
+	err = writer.WriteMessages(
 		ctx,
 		kafka.Message{
 			Key:   key,
@@ -69,18 +71,18 @@ func NewChat(new *model.Chat) error {
 }
 
 // GetChat 使用gRpc来获取聊天信息
-func GetChat(id int64) (*model.Chat, error) {
+func GetChat(cid int64) (*model.Chat, error) {
 	// 创建gRpc客户端
 	client := grpc.UserClientServer(grpc.GetChat)
-	if client == code.ConnGrpcServerERR {
-		return nil, errors.New(code.ConnGrpcServerERR.Msg())
+	if client == nil {
+		return nil, errors.New("gRpc 客户端启动失败")
 	}
 
 	// 获取聊天列表
-	sendId := &chat.ID{Id: id}
+	sendId := &chat.ID{Id: cid}
 	c, err := client.(chat.GetChatServiceClient).GetChat(context.Background(), sendId)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("使用 gRpc 获取信息失败")
 	}
 
 	res := model.ChatUnmarshal(c)
@@ -89,7 +91,7 @@ func GetChat(id int64) (*model.Chat, error) {
 }
 
 // RenameChat 使用kafka发送修改聊天名
-func RenameChat(id int64, name string) error {
+func RenameChat(cid int64, name string) error {
 	ctx := context.Background()
 	// 创建 Kafka 生产者
 	writer := &kafka.Writer{
@@ -104,8 +106,8 @@ func RenameChat(id int64, name string) error {
 	defer writer.Close()
 
 	// 构造消息
-	key := []byte(fmt.Sprintf("%d", id)) // key = id
-	value := []byte(name)                // value = name
+	key := []byte(fmt.Sprintf("%d", cid)) // key = cid
+	value := []byte(name)                 // value = name
 
 	// 发送消息
 	err := writer.WriteMessages(
@@ -123,7 +125,7 @@ func RenameChat(id int64, name string) error {
 }
 
 // DeleteChat 使用kafka发送删除聊天
-func DeleteChat(id string) error {
+func DeleteChat(cid string) error {
 	ctx := context.Background()
 	// 创建 Kafka 生产者
 	writer := &kafka.Writer{
@@ -138,8 +140,8 @@ func DeleteChat(id string) error {
 	defer writer.Close()
 
 	// 构造消息
-	key := []byte(id) // key = id
-	var value []byte  // value = nil
+	key := []byte(cid) // key = cid
+	var value []byte   // value = nil
 
 	// 发送消息
 	err := writer.WriteMessages(
@@ -157,7 +159,7 @@ func DeleteChat(id string) error {
 }
 
 // SendQA 使用kafka发送QA
-func SendQA(qa *model.QA, id int64) error {
+func SendQA(qa *model.QA, cid int64) error {
 	ctx := context.Background()
 	// 创建 Kafka 生产者
 	writer := &kafka.Writer{
@@ -172,8 +174,11 @@ func SendQA(qa *model.QA, id int64) error {
 	defer writer.Close()
 
 	// 构造消息
-	key := []byte(fmt.Sprintf("%d", id)) // key = id
-	value, err := json.Marshal(*qa)      // value = nil
+	key := []byte(fmt.Sprintf("%d", cid)) // key = cid
+	value, err := json.Marshal(*qa)       // value = qa
+	if err != nil {
+		return err
+	}
 
 	// 发送消息
 	err = writer.WriteMessages(
