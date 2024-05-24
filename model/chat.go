@@ -3,7 +3,7 @@ package model
 import "github.com/listenGrey/lucianagRpcPKG/chat"
 
 type Request struct {
-	Id     int64  `json:"id" binding:"required"`
+	Id     int64  `json:"cid" binding:"required"`
 	Prompt string `json:"prompt" binding:"required"`
 }
 

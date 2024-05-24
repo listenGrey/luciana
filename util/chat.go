@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/listenGrey/lucianagRpcPKG/ask"
 	"github.com/listenGrey/lucianagRpcPKG/chat"
 	"github.com/segmentio/kafka-go"
 	"luciana/model"
@@ -193,4 +194,22 @@ func SendQA(qa *model.QA, cid int64) error {
 	}
 
 	return nil
+}
+
+// SendPrompt 使用gRpc发送问题，接收回答
+func SendPrompt(prompt string) (string, error) {
+	// 创建gRpc客户端
+	client := grpc.UserClientServer(grpc.SendPrompt)
+	if client == nil {
+		return "", errors.New("gRpc 客户端启动失败")
+	}
+
+	// 获取回答
+	request := &ask.Request{Prompt: prompt}
+	res, err := client.(ask.ChatServiceClient).Chat(context.Background(), request)
+	if err != nil {
+		return "", errors.New("使用 gRpc 获取信息失败")
+	}
+
+	return res.GetResult(), nil
 }

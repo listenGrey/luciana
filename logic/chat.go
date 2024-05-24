@@ -2,11 +2,8 @@ package logic
 
 import (
 	"github.com/bwmarrin/snowflake"
-	"github.com/tmc/langchaingo/llms/ollama"
 	"luciana/model"
 	"luciana/util"
-
-	"context"
 )
 
 // GetChatList 获取聊天列表
@@ -59,16 +56,10 @@ func DeleteChat(id string) error {
 
 // Generate 生成回答
 func Generate(request *model.Request) (string, error) {
-	llm, err := ollama.New(ollama.WithModel("llama3"))
+	res, err := util.SendPrompt(request.Prompt)
 	if err != nil {
 		return "", err
 	}
-
-	res, err := llm.Call(context.Background(), request.Prompt)
-	if err != nil {
-		return "", err
-	}
-
 	qa := &model.QA{
 		Request:  request.Prompt,
 		Response: res,
