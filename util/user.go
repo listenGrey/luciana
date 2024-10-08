@@ -1,30 +1,26 @@
 package util
 
 import (
-	"encoding/json"
+	"context"
 	"errors"
 	"fmt"
 	"github.com/listenGrey/lucianagRpcPKG/user"
-	"github.com/segmentio/kafka-go"
 	"luciana/errHandler/code"
 	"luciana/model"
 	"luciana/pkg/grpc"
-	"time"
-
-	"context"
 )
 
 // CheckExistence 使用gRpc检查邮箱是否存在
 func CheckExistence(email string) (code.Code, error) {
 	// 创建gRpc客户端
-	client := grpc.UserClientServer(grpc.CheckExistence)
+	client := grpc.UserClientServer(grpc.CheckExist)
 	if client == nil {
 		return code.Busy, errors.New("gRpc 客户端启动失败")
 	}
 
 	// 获取用户的状态信息
 	sendEmail := &user.Email{Email: email}
-	res, err := client.(user.CheckExistClient).RegisterCheck(context.Background(), sendEmail)
+	res, err := client.(user.CheckExistClient).CheckExist(context.Background(), sendEmail)
 	if err != nil {
 		return code.Busy, errors.New("使用 gRpc 获取信息失败")
 	}
@@ -39,45 +35,28 @@ func CheckExistence(email string) (code.Code, error) {
 
 // Register 使用kafka发送用户注册数据
 func Register(u *model.User) error {
-	ctx := context.Background()
-	// 创建 Kafka 生产者
-	writer := &kafka.Writer{
-		Addr:                   kafka.TCP("localhost:9092"),
-		Topic:                  "register",
-		Balancer:               &kafka.Hash{},
-		WriteTimeout:           1 * time.Second,
-		RequiredAcks:           kafka.RequireNone,
-		AllowAutoTopicCreation: false,
+	// 创建gRpc客户端
+	client := grpc.UserClientServer(grpc.Register)
+	if client == nil {
+		return errors.New("gRpc 客户端启动失败")
 	}
-
-	defer writer.Close()
-
-	// 构造消息
-	key := []byte(fmt.Sprintf("%d", u.UserID)) // key = id
-	value, err := json.Marshal(*u)             // value = data
+	sendUser := &user.RegisterFrom{
+		Uid:      u.Uid,
+		Email:    u.Email,
+		Name:     u.UserName,
+		Password: u.Password,
+	}
+	_, err := client.(user.RegisterCheckClient).RegisterCheck(context.Background(), sendUser)
 	if err != nil {
-		return err
+		return fmt.Errorf("注册失败：%s", err)
 	}
-
-	// 发送消息
-	err = writer.WriteMessages(
-		ctx,
-		kafka.Message{
-			Key:   key,
-			Value: value,
-		},
-	)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
 // LoginCheck 使用gRpc发送用户登录数据
 func LoginCheck(u *model.User) (code.Code, int64, string, error) {
 	// 创建gRpc客户端
-	client := grpc.UserClientServer(grpc.LoginCheck)
+	client := grpc.UserClientServer(grpc.Login)
 	if client == nil {
 		return code.Busy, 0, "", errors.New("gRpc 客户端启动失败")
 	}
@@ -100,5 +79,5 @@ func LoginCheck(u *model.User) (code.Code, int64, string, error) {
 		return code.InvalidPwd, 0, "", nil
 	}
 
-	return code.Success, res.UserId, res.UserName, nil
+	return code.Success, res.Uid, res.UserName, nil
 }

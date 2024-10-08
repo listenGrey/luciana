@@ -6,19 +6,20 @@ import (
 	"luciana/errHandler/code"
 	"luciana/logic"
 	"luciana/model"
+	"strconv"
 )
 
-// IndexHandler 首页
-func IndexHandler(c *gin.Context) {
+// ChatListHandler 首页，查看聊天列表
+func ChatListHandler(c *gin.Context) {
 	// 获取当前用户的ID
 	id, err := errHandler.GetCurrentUserID(c)
 	if err != nil {
-		errHandler.ResponseError(c, code.InvalidToken)
+		errHandler.ResponseError(c, code.Unauthorized)
 		return
 	}
 
 	// 获取聊天列表
-	res, err := logic.GetChatList(id)
+	res, err := logic.ChatList(id)
 	if err != nil {
 		errHandler.ResponseError(c, code.Busy)
 		return
@@ -32,10 +33,9 @@ func NewChat(c *gin.Context) {
 	// 获取当前用户的ID
 	id, err := errHandler.GetCurrentUserID(c)
 	if err != nil {
-		errHandler.ResponseError(c, code.InvalidToken)
+		errHandler.ResponseError(c, code.Unauthorized)
 		return
 	}
-
 	// 获取新建对话的id和name
 	res, err := logic.NewChat(id)
 	if err != nil {
@@ -46,14 +46,14 @@ func NewChat(c *gin.Context) {
 	errHandler.ResponseSuccess(c, *res)
 }
 
-// ChatHandler 查看对话
-func ChatHandler(c *gin.Context) {
-	var chat *model.Chat
-	if err := c.ShouldBindJSON(&chat); err != nil {
-		errHandler.ResponseError(c, code.InvalidParams)
+// GetChatHandler 查看对话
+func GetChatHandler(c *gin.Context) {
+	sid := c.Param("id")
+	id, err := strconv.ParseInt(sid, 10, 64)
+	if err != nil {
+		errHandler.ResponseError(c, code.Busy)
 		return
 	}
-	id := chat.ChatID
 	res, err := logic.GetChat(id)
 	if err != nil {
 		errHandler.ResponseError(c, code.Busy)
@@ -63,16 +63,16 @@ func ChatHandler(c *gin.Context) {
 	errHandler.ResponseSuccess(c, *res)
 }
 
-// RenameHandler 对话重命名
-func RenameHandler(c *gin.Context) {
+// RenameChatHandler 对话重命名
+func RenameChatHandler(c *gin.Context) {
 	var chat *model.Chat
 	if err := c.ShouldBindJSON(&chat); err != nil {
 		errHandler.ResponseError(c, code.InvalidParams)
 		return
 	}
-	id := chat.ChatID
+	cid := chat.Cid
 	name := chat.Name
-	err := logic.RenameChat(id, name)
+	err := logic.RenameChat(cid, name)
 	if err != nil {
 		errHandler.ResponseError(c, code.Busy)
 		return
@@ -81,11 +81,16 @@ func RenameHandler(c *gin.Context) {
 	errHandler.ResponseSuccess(c, "修改成功")
 }
 
-// DeleteHandler 删除对话
-func DeleteHandler(c *gin.Context) {
-	chat := c.Param("chat")
+// DeleteChatHandler 删除对话
+func DeleteChatHandler(c *gin.Context) {
+	sid := c.Param("id")
+	id, err := strconv.ParseInt(sid, 10, 64)
+	if err != nil {
+		errHandler.ResponseError(c, code.Busy)
+		return
+	}
 
-	err := logic.DeleteChat(chat)
+	err = logic.DeleteChat(id)
 	if err != nil {
 		errHandler.ResponseError(c, code.Busy)
 		return
@@ -94,15 +99,15 @@ func DeleteHandler(c *gin.Context) {
 	errHandler.ResponseSuccess(c, "删除成功")
 }
 
-// RequestHandler 发送问题
-func RequestHandler(c *gin.Context) {
+// PromptHandler 发送问题
+func PromptHandler(c *gin.Context) {
 	var request *model.Request
 	if err := c.ShouldBindJSON(&request); err != nil {
 		errHandler.ResponseError(c, code.InvalidParams)
 		return
 	}
 
-	res, err := logic.Generate(request)
+	res, err := logic.Prompt(request)
 	if err != nil {
 		errHandler.ResponseError(c, code.Busy)
 		return

@@ -6,9 +6,9 @@ import (
 	"luciana/util"
 )
 
-// GetChatList 获取聊天列表
-func GetChatList(id int64) (*[]model.Chat, error) {
-	list, err := util.GetChatList(id)
+// ChatList 获取聊天列表
+func ChatList(id int64) (*[]model.Chat, error) {
+	list, err := util.ChatList(id)
 	return list, err
 }
 
@@ -23,8 +23,8 @@ func NewChat(uid int64) (*model.Chat, error) {
 
 	// 创建新聊天
 	newChat := &model.Chat{
-		ChatID: id.Int64(),
-		Name:   "New Chat",
+		Cid:  id.Int64(),
+		Name: "New Chat",
 	}
 
 	// 将新聊天信息发送
@@ -43,28 +43,20 @@ func GetChat(id int64) (*model.Chat, error) {
 }
 
 // RenameChat 聊天重命名
-func RenameChat(id int64, name string) error {
-	err := util.RenameChat(id, name)
+func RenameChat(cid int64, name string) error {
+	err := util.RenameChat(cid, name)
 	return err
 }
 
 // DeleteChat 删除聊天
-func DeleteChat(id string) error {
+func DeleteChat(id int64) error {
 	err := util.DeleteChat(id)
 	return err
 }
 
-// Generate 生成回答
-func Generate(request *model.Request) (string, error) {
-	res, err := util.SendPrompt(request.Prompt)
-	if err != nil {
-		return "", err
-	}
-	qa := &model.QA{
-		Request:  request.Prompt,
-		Response: res,
-	}
-	err = util.SendQA(qa, request.Id)
+// Prompt 获取回答
+func Prompt(request *model.Request) (string, error) {
+	res, err := util.Prompt(request)
 	if err != nil {
 		return "", err
 	}

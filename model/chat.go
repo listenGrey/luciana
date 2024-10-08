@@ -2,9 +2,21 @@ package model
 
 import "github.com/listenGrey/lucianagRpcPKG/chat"
 
-type Request struct {
-	Id     int64  `json:"cid" binding:"required"`
-	Prompt string `json:"prompt" binding:"required"`
+type ChatList struct {
+	Uid   int64      `json:"uid"`
+	Chats []ChatInfo `json:"chats"`
+}
+
+type ChatInfo struct {
+	Cid  int64  `bson:"cid"`
+	Name string `bson:"name"`
+}
+
+type Chat struct {
+	Cid  int64  `json:"cid" binding:"required"`
+	Uid  int64  `json:"uid"`
+	Name string `json:"name"`
+	QAs  []QA   `json:"qas"`
 }
 
 type QA struct {
@@ -12,25 +24,24 @@ type QA struct {
 	Response string `json:"response"`
 }
 
-type Chat struct {
-	ChatID int64  `json:"cid" binding:"required"`
-	Name   string `json:"name"`
-	QAs    []QA   `json:"qa_s"`
+type Request struct {
+	Cid    int64  `json:"cid" binding:"required"`
+	Prompt string `json:"prompt" binding:"required"`
 }
 
 type ResponseContent struct {
-	Code    int64       `json:"code"`
-	Msg     string      `json:"msg"`
-	Content interface{} `json:"content,omitempty"` // content为空时不显示
+	Code int64       `json:"code"`
+	Msg  string      `json:"msg"`
+	Data interface{} `json:"data,omitempty"` // content为空时不显示
 }
 
-func ChatsUnmarshal(c *chat.Chats) *[]Chat {
+func ChatsUnmarshal(c *chat.ChatList) *[]Chat {
 	var chats []Chat
 
-	for _, v := range c.Chats {
+	for _, v := range c.GetChats() {
 		var ch Chat
 
-		ch.ChatID = v.Id
+		ch.Cid = v.Cid
 		ch.Name = v.Name
 
 		chats = append(chats, ch)
@@ -42,7 +53,7 @@ func ChatsUnmarshal(c *chat.Chats) *[]Chat {
 func ChatUnmarshal(c *chat.Chat) *Chat {
 	var ch Chat
 
-	ch.ChatID = c.Id
+	ch.Cid = c.Cid
 	ch.Name = c.Name
 
 	var qas []QA

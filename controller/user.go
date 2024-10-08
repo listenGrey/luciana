@@ -73,7 +73,7 @@ func LoginHandler(c *gin.Context) {
 
 	//返回响应
 	errHandler.ResponseSuccess(c, gin.H{
-		"user_id":       fmt.Sprintf("%d", curUser.UserID),
+		"user_id":       fmt.Sprintf("%d", curUser.Uid),
 		"user_name":     curUser.UserName,
 		"access_token":  curUser.AccessToken,
 		"refresh_token": curUser.RefreshToken,
@@ -86,20 +86,20 @@ func RefreshTokenHandler(c *gin.Context) {
 
 	authHeader := c.Request.Header.Get("Authorization")
 	if authHeader == "" {
-		errHandler.ResponseMsg(c, code.InvalidToken, "请求头缺少Token")
+		errHandler.ResponseMsg(c, code.Unauthorized, "请求头缺少Token")
 		c.Abort()
 		return
 	}
 	// 按空格分割
 	parts := strings.SplitN(authHeader, " ", 2)
 	if !(len(parts) == 2 && parts[0] == "Bearer") {
-		errHandler.ResponseMsg(c, code.InvalidToken, "Token格式错误")
+		errHandler.ResponseMsg(c, code.Unauthorized, "Token格式错误")
 		c.Abort()
 		return
 	}
 	aToken, rToken, err := jwt.RefreshToken(parts[1], rt)
 	if err != nil {
-		errHandler.ResponseMsg(c, code.InvalidToken, "刷新Token错误")
+		errHandler.ResponseMsg(c, code.Unauthorized, "刷新Token错误")
 		c.Abort()
 		return
 	}

@@ -43,10 +43,11 @@ func Register(client *model.RegisterFrom) (code.Code, error) {
 
 	// 创建一个用户
 	user := &model.User{
-		UserID:   userId.Int64(),
-		Email:    client.Email,
-		UserName: client.UserName,
-		Password: userPwd,
+		Uid:        userId.Int64(),
+		Email:      client.Email,
+		UserName:   client.UserName,
+		Password:   userPwd,
+		Invitation: client.Invitation,
 	}
 
 	// 发送用户信息
@@ -77,11 +78,11 @@ func Login(form *model.LoginForm) (*model.User, code.Code, error) {
 	if info != code.Success {
 		return nil, info, nil
 	}
-	user.UserID = userID
+	user.Uid = userID
 	user.UserName = userName
 
 	// 生成JWT
-	aToken, rToken, err := jwt.GenToken(user.UserID, user.UserName)
+	aToken, rToken, err := jwt.GenToken(user.Uid, user.UserName)
 	if err != nil {
 		return nil, code.Busy, err
 	}
