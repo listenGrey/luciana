@@ -17,7 +17,7 @@ func encryptPwd(pwdByte []byte) (res string) {
 }
 
 // Register 用户注册
-func Register(client *model.RegisterFrom) (code.Code, error) {
+func Register(client *model.RegisterForm) (code.Code, error) {
 	// 判断邀请码
 	if client.Invitation != "ae86se" {
 		return code.InvalidInvitation, nil

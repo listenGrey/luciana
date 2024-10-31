@@ -5,20 +5,18 @@ import (
 	"errors"
 )
 
-type RegisterFrom struct {
-	UserName   string `json:"user_name" binding:"required,min=1,max=10"`
+type RegisterForm struct {
+	UserName   string `json:"user_name" binding:"required"`
 	Email      string `json:"email" binding:"required,email"`
-	Password   string `json:"password" binding:"required,min=8,max=16"`
-	RePassword string `json:"re_password" binding:"required,eqfield=Password"`
-	Invitation string `json:"invitation" binding:"required,min=6,max=6"`
+	Password   string `json:"password" binding:"required"`
+	Invitation string `json:"invitation" binding:"required"`
 }
 
-func (r *RegisterFrom) UnmarshalJSON(data []byte) (err error) {
+func (r *RegisterForm) UnmarshalJSON(data []byte) (err error) {
 	required := struct {
 		UserName   string `json:"user_name"`
 		Email      string `json:"email"`
 		Password   string `json:"password"`
-		RePassword string `json:"re_password"`
 		Invitation string `json:"invitation"`
 	}{}
 	err = json.Unmarshal(data, &required)
@@ -33,15 +31,12 @@ func (r *RegisterFrom) UnmarshalJSON(data []byte) (err error) {
 		err = errors.New("密码至少为8位")
 	} else if len(required.Password) > 16 {
 		err = errors.New("密码最多为16位")
-	} else if required.Password != required.RePassword {
-		err = errors.New("两次密码不一致")
 	} else if len(required.Invitation) != 6 {
 		err = errors.New("邀请码为6位")
 	} else {
 		r.UserName = required.UserName
 		r.Email = required.Email
 		r.Password = required.Password
-		r.RePassword = required.RePassword
 		r.Invitation = required.Invitation
 	}
 	return

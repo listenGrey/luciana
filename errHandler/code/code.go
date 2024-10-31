@@ -26,7 +26,7 @@ var msgFlags = map[Code]string{
 	Busy:              "业务繁忙，请稍后重试",
 	UserExist:         "用户已存在",
 	UserNotExist:      "用户不存在",
-	InvalidPwd:        "用户名或密码错误",
+	InvalidPwd:        "密码错误",
 }
 
 func (c Code) Msg() string {

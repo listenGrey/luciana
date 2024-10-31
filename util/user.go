@@ -33,7 +33,7 @@ func CheckExistence(email string) (code.Code, error) {
 	return code.Success, nil
 }
 
-// Register 使用kafka发送用户注册数据
+// Register 发送用户注册数据
 func Register(u *model.User) error {
 	// 创建gRpc客户端
 	client := grpc.UserClientServer(grpc.Register)
@@ -41,10 +41,11 @@ func Register(u *model.User) error {
 		return errors.New("gRpc 客户端启动失败")
 	}
 	sendUser := &user.RegisterFrom{
-		Uid:      u.Uid,
-		Email:    u.Email,
-		Name:     u.UserName,
-		Password: u.Password,
+		Uid:        u.Uid,
+		Email:      u.Email,
+		Name:       u.UserName,
+		Password:   u.Password,
+		Invitation: u.Invitation,
 	}
 	_, err := client.(user.RegisterCheckClient).RegisterCheck(context.Background(), sendUser)
 	if err != nil {

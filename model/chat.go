@@ -1,6 +1,9 @@
 package model
 
-import "github.com/listenGrey/lucianagRpcPKG/chat"
+import (
+	"github.com/listenGrey/lucianagRpcPKG/chat"
+	"strconv"
+)
 
 type ChatList struct {
 	Uid   int64      `json:"uid"`
@@ -54,6 +57,7 @@ func ChatUnmarshal(c *chat.Chat) *Chat {
 	var ch Chat
 
 	ch.Cid = c.Cid
+	ch.Uid = c.Uid
 	ch.Name = c.Name
 
 	var qas []QA
@@ -68,4 +72,27 @@ func ChatUnmarshal(c *chat.Chat) *Chat {
 	ch.QAs = qas
 
 	return &ch
+}
+
+type FrontChatList struct {
+	Cid  string `json:"cid"`
+	Name string `json:"name"`
+}
+
+type FrontChat struct {
+	QAs []QA `json:"qas"`
+}
+
+type FrontRequest struct {
+	Cid    string `json:"cid" binding:"required"`
+	Prompt string `json:"prompt" binding:"required"`
+}
+
+func Int64ToString(id int64) string {
+	return strconv.FormatInt(id, 10)
+}
+
+func StringToInt64(id string) int64 {
+	i, _ := strconv.ParseInt(id, 10, 64)
+	return i
 }

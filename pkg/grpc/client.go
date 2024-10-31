@@ -44,9 +44,9 @@ func UserClientServer(service Service) (client interface{}) {
 		chatConn, err := grpc.Dial("localhost:8964", grpc.WithTransportCredentials(creds2)) //server IP
 		askConn, err := grpc.Dial("localhost:8964", grpc.WithTransportCredentials(creds3))  //server IP
 	*/
-	userConn, err := grpc.Dial("localhost:8964", grpc.WithInsecure()) //server IP
-	chatConn, err := grpc.Dial("localhost:8964", grpc.WithInsecure()) //server IP
-	askConn, err := grpc.Dial("localhost:8964", grpc.WithInsecure())  //server IP
+	userConn, err := grpc.Dial(":50051", grpc.WithInsecure())        //server IP
+	chatConn, err := grpc.Dial(":50052", grpc.WithInsecure())        //server IP
+	askConn, err := grpc.Dial("localhost:8966", grpc.WithInsecure()) //server IP
 	if err != nil {
 		return nil
 	}

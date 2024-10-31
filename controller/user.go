@@ -3,7 +3,6 @@ package controller
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	"luciana/errHandler"
 	"luciana/errHandler/code"
 	"luciana/logic"
@@ -16,15 +15,8 @@ import (
 // RegisterHandler 用户注册业务
 func RegisterHandler(c *gin.Context) {
 	//获取请求参数，校验数据
-	var client *model.RegisterFrom
-	if err := c.ShouldBindJSON(&client); err != nil {
-		//判断 err 是否为 validator 类型
-		errs, ok := err.(validator.ValidationErrors)
-		if ok {
-			// 翻译错误
-			errHandler.ResponseMsg(c, code.InvalidParams, errs.Translate(trans))
-			return
-		}
+	var client *model.RegisterForm
+	if err := c.ShouldBind(&client); err != nil {
 		// 请求参数错误
 		errHandler.ResponseError(c, code.InvalidParams)
 		return
@@ -47,14 +39,7 @@ func RegisterHandler(c *gin.Context) {
 func LoginHandler(c *gin.Context) {
 	//获取请求参数，校验参数
 	var user *model.LoginForm
-	if err := c.ShouldBindJSON(&user); err != nil {
-		//判断 err 是否为 validator 类型
-		errs, ok := err.(validator.ValidationErrors)
-		if ok {
-			// 翻译错误
-			errHandler.ResponseMsg(c, code.InvalidParams, errs.Translate(trans))
-			return
-		}
+	if err := c.ShouldBind(&user); err != nil {
 		// 请求参数错误
 		errHandler.ResponseError(c, code.InvalidParams)
 		return

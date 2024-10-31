@@ -94,6 +94,8 @@ github.com/listenGrey/lucianagRpcPKG v0.0.12 h1:ZBQnzY/6pJcQk/8wCIeOynpco/ey0CAs
 github.com/listenGrey/lucianagRpcPKG v0.0.12/go.mod h1:qkQ34ZzydD6NCJCMogfVxwmiwFycXzwpmIorlXRaV3o=
 github.com/listenGrey/lucianagRpcPKG v0.1.0 h1:uSbSbUpdbcF8oPsRvEvRI+ihBfAuDQMZyQiTvpyS6vU=
 github.com/listenGrey/lucianagRpcPKG v0.1.0/go.mod h1:qkQ34ZzydD6NCJCMogfVxwmiwFycXzwpmIorlXRaV3o=
+github.com/listenGrey/lucianagRpcPKG v0.1.1 h1:C5gK+W8O+FIrq3StGEpHWaiWPd8SCFGNiWj8v++oi84=
+github.com/listenGrey/lucianagRpcPKG v0.1.1/go.mod h1:qkQ34ZzydD6NCJCMogfVxwmiwFycXzwpmIorlXRaV3o=
 github.com/mattn/go-isatty v0.0.19 h1:JITubQf0MOLdlGRuRq+jtsDlekdYPia9ZFsB8h/APPA=
 github.com/mattn/go-isatty v0.0.19/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=

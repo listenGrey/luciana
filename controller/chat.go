@@ -12,14 +12,14 @@ import (
 // ChatListHandler 首页，查看聊天列表
 func ChatListHandler(c *gin.Context) {
 	// 获取当前用户的ID
-	id, err := errHandler.GetCurrentUserID(c)
+	uid, err := errHandler.GetCurrentUserID(c)
 	if err != nil {
 		errHandler.ResponseError(c, code.Unauthorized)
 		return
 	}
 
 	// 获取聊天列表
-	res, err := logic.ChatList(id)
+	res, err := logic.ChatList(uid)
 	if err != nil {
 		errHandler.ResponseError(c, code.Busy)
 		return
@@ -31,13 +31,13 @@ func ChatListHandler(c *gin.Context) {
 // NewChat 创建新对话
 func NewChat(c *gin.Context) {
 	// 获取当前用户的ID
-	id, err := errHandler.GetCurrentUserID(c)
+	uid, err := errHandler.GetCurrentUserID(c)
 	if err != nil {
 		errHandler.ResponseError(c, code.Unauthorized)
 		return
 	}
 	// 获取新建对话的id和name
-	res, err := logic.NewChat(id)
+	res, err := logic.NewChat(uid)
 	if err != nil {
 		errHandler.ResponseError(c, code.Busy)
 		return
@@ -49,30 +49,42 @@ func NewChat(c *gin.Context) {
 // GetChatHandler 查看对话
 func GetChatHandler(c *gin.Context) {
 	sid := c.Param("id")
-	id, err := strconv.ParseInt(sid, 10, 64)
+	cid, err := strconv.ParseInt(sid, 10, 64)
 	if err != nil {
 		errHandler.ResponseError(c, code.Busy)
 		return
 	}
-	res, err := logic.GetChat(id)
+	res, err := logic.GetChat(cid)
 	if err != nil {
 		errHandler.ResponseError(c, code.Busy)
 		return
 	}
 
-	errHandler.ResponseSuccess(c, *res)
+	errHandler.ResponseSuccess(c, res)
 }
 
 // RenameChatHandler 对话重命名
 func RenameChatHandler(c *gin.Context) {
-	var chat *model.Chat
-	if err := c.ShouldBindJSON(&chat); err != nil {
+	// 获取当前用户的ID
+	uid, err := errHandler.GetCurrentUserID(c)
+	if err != nil {
+		errHandler.ResponseError(c, code.Unauthorized)
+		return
+	}
+
+	var chat *model.FrontChatList
+	if err = c.ShouldBind(&chat); err != nil {
 		errHandler.ResponseError(c, code.InvalidParams)
 		return
 	}
-	cid := chat.Cid
-	name := chat.Name
-	err := logic.RenameChat(cid, name)
+
+	reChat := &model.Chat{
+		Cid:  model.StringToInt64(chat.Cid),
+		Uid:  uid,
+		Name: chat.Name,
+		QAs:  nil,
+	}
+	err = logic.RenameChat(reChat)
 	if err != nil {
 		errHandler.ResponseError(c, code.Busy)
 		return
@@ -84,13 +96,20 @@ func RenameChatHandler(c *gin.Context) {
 // DeleteChatHandler 删除对话
 func DeleteChatHandler(c *gin.Context) {
 	sid := c.Param("id")
-	id, err := strconv.ParseInt(sid, 10, 64)
+	cid, err := strconv.ParseInt(sid, 10, 64)
 	if err != nil {
 		errHandler.ResponseError(c, code.Busy)
 		return
 	}
 
-	err = logic.DeleteChat(id)
+	// 获取当前用户的ID
+	uid, err := errHandler.GetCurrentUserID(c)
+	if err != nil {
+		errHandler.ResponseError(c, code.Unauthorized)
+		return
+	}
+
+	err = logic.DeleteChat(uid, cid)
 	if err != nil {
 		errHandler.ResponseError(c, code.Busy)
 		return
@@ -101,8 +120,8 @@ func DeleteChatHandler(c *gin.Context) {
 
 // PromptHandler 发送问题
 func PromptHandler(c *gin.Context) {
-	var request *model.Request
-	if err := c.ShouldBindJSON(&request); err != nil {
+	var request *model.FrontRequest
+	if err := c.ShouldBind(&request); err != nil {
 		errHandler.ResponseError(c, code.InvalidParams)
 		return
 	}

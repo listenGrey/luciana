@@ -8,6 +8,7 @@ import (
 	"luciana/errHandler/code"
 	"luciana/middlewares"
 	"net/http"
+	"time"
 )
 
 func SetupRouter() *gin.Engine {
@@ -16,8 +17,12 @@ func SetupRouter() *gin.Engine {
 
 	// 配置CORS中间件
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:8082"}        // 允许前端的地址
+	config.AllowOrigins = []string{"http://localhost:5173"}        // 允许前端的地址
 	config.AllowMethods = []string{"POST", "GET", "DELETE", "PUT"} // 允许的方法
+	config.AllowHeaders = []string{"Authorization", "Content-Type"}
+	config.ExposeHeaders = []string{"Content-Length"}
+	config.AllowCredentials = true
+	config.MaxAge = 12 * time.Hour
 
 	// 使用zap
 	r.Use(
@@ -42,10 +47,10 @@ func SetupRouter() *gin.Engine {
 		v1.PUT("/rename", controller.RenameChatHandler)
 		v1.DELETE("/delete/:id", controller.DeleteChatHandler)
 		v1.POST("/prompt", controller.PromptHandler)
-
 		v1.GET("/ping", func(c *gin.Context) {
 			c.String(http.StatusOK, "pong")
 		})
+
 	}
 	r.NoRoute(func(c *gin.Context) {
 		errHandler.ResponseError(c, code.NotFound)

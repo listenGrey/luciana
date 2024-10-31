@@ -49,7 +49,7 @@ func GetChat(cid int64) (*model.Chat, error) {
 }
 
 // NewChat 创建新聊天
-func NewChat(uid int64, new *model.Chat) error {
+func NewChat(new *model.Chat) error {
 	// 创建gRpc客户端
 	client := grpc.UserClientServer(grpc.NewChat)
 	if client == nil {
@@ -59,7 +59,7 @@ func NewChat(uid int64, new *model.Chat) error {
 	// 创建新聊天
 	c := &chat.Chat{
 		Cid:  new.Cid,
-		Uid:  uid,
+		Uid:  new.Uid,
 		Name: new.Name,
 		Qas:  nil,
 	}
@@ -72,7 +72,7 @@ func NewChat(uid int64, new *model.Chat) error {
 }
 
 // RenameChat 修改聊天名
-func RenameChat(cid int64, name string) error {
+func RenameChat(ch *model.Chat) error {
 	// 创建gRpc客户端
 	client := grpc.UserClientServer(grpc.RenameChat)
 	if client == nil {
@@ -80,9 +80,11 @@ func RenameChat(cid int64, name string) error {
 	}
 
 	// 修改聊天名
-	c := &chat.ChatInfo{
-		Cid:  cid,
-		Name: name,
+	c := &chat.Chat{
+		Cid:  ch.Cid,
+		Uid:  ch.Uid,
+		Name: ch.Name,
+		Qas:  nil,
 	}
 	_, err := client.(chat.RenameChatClient).RenameChat(context.Background(), c)
 	if err != nil {
@@ -93,7 +95,7 @@ func RenameChat(cid int64, name string) error {
 }
 
 // DeleteChat 删除聊天
-func DeleteChat(cid int64) error {
+func DeleteChat(uid, cid int64) error {
 	// 创建gRpc客户端
 	client := grpc.UserClientServer(grpc.DeleteChat)
 	if client == nil {
@@ -101,7 +103,12 @@ func DeleteChat(cid int64) error {
 	}
 
 	// 删除聊天
-	c := &chat.ID{Id: cid}
+	c := &chat.Chat{
+		Cid:  cid,
+		Uid:  uid,
+		Name: "",
+		Qas:  nil,
+	}
 	_, err := client.(chat.DeleteChatClient).DeleteChat(context.Background(), c)
 	if err != nil {
 		return errors.New("使用 gRpc 获取信息失败")
